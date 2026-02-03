@@ -47,7 +47,10 @@ Create a .env file in the project root:
 
 SECRET_KEY=your_secret_key
 DEBUG=True
+
+
 DATABASE_URL=postgres://neondb_owner:123456@ep-cool-water.neon.tech/parking_db?sslmode=require
+
 Step 4: Run Migrations & Seed Sample Data
 python manage.py migrate
 python manage.py shell < generate_data.py
