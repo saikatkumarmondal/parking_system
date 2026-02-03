@@ -1,67 +1,18 @@
-# 🅿️ Smart Car Parking Slot Monitoring System (Backend)
-
-## 📌 Project Overview
-
-This is a robust backend solution for a Smart Car Parking Monitoring System. It tracks parking slot occupancy in real-time using IoT device telemetry data. The system features device registration, secure data ingestion, health monitoring (heartbeat), and historical analysis.
-
-## 🚀 Features
-
-- **Device Management:** Register and list parking monitoring devices.
-- **Telemetry Ingestion:** Secure API to receive voltage, current, power factor, and occupancy status.
-- **Data Integrity:** Strict duplicate handling (same device + same timestamp prevention).
-- **Health Monitoring:** Real-time health calculation (Healthy, Warning, Offline) based on heartbeat.
-- **Security:** JWT-based authentication for all endpoints.
-- **Data Seeding:** Custom script to populate the database for testing.
-
-## 🛠️ Technology Stack
-
-- **Framework:** Django 6.0.1 + Django REST Framework (DRF)
-- **Database:** PostgreSQL (Cloud-hosted via **Neon DB**)
-- **Authentication:** Simple JWT (JSON Web Token)
-- **Environment Management:** `python-decouple`, `dj-database_url`
-
-## 📂 Project Structure
-
-```text
-parking_system/
-├── apps/
-│   ├── parking/          # Core logic (Devices & Slots)
-│   └── telemetry/        # Time-series data & health monitoring
-├── core/                 # Settings, WSGI, ASGI, and URL routing
-├── venv/                 # Virtual environment
-├── .env                  # Secrets and configurations
-├── manage.py             # Django command-line utility
-└── generate_data.py      # Custom script for dummy data seeding
-
-
-
-⚙️ Setup & Installation1. PrerequisitesPython 3.14+Neon DB (PostgreSQL) account2. Installation StepsBash# Clone the repository
-git clone <your-repository-url>
+🅿️ Smart Car Parking Monitoring SystemA full-stack monitoring solution designed to track car parking occupancy, historical telemetry (voltage/current), and device health in real-time.1. Project OverviewThis system allows facility operators to monitor parking zones, track individual slot statuses, and ensure that monitoring devices are functional. It is built using a Django REST Framework backend and a Neon DB (PostgreSQL) cloud database.2. Setup InstructionsPrerequisitesPython 3.12+Neon DB or any PostgreSQL instanceStep 1: Clone and Environment SetupBashgit clone https://github.com/saikatkumarmondal/parking_system
 cd parking_system
-
-# Create and activate virtual environment
 python -m venv venv
-venv\Scripts\activate
-
-# Install dependencies
-pip install django djangorestframework djangorestframework-simplejwt django-cors-headers django-filter dj-database-url python-decouple
-3. Database & Environment ConfigurationCreate a .env file in the root folder and add your Neon DB credentials:Code snippetSECRET_KEY=django-insecure-highly-secret-key-2026
+source venv/bin/activate # On Windows: venv\Scripts\activate
+Step 2: Install DependenciesBashpip install -r requirements.txt
+Step 3: Configure Environment VariablesCreate a .env file in the root directory:Code snippetSECRET_KEY=your_secret_key
 DEBUG=True
-DATABASE_URL=postgres://neondb_owner:<password>@<neon-host>/parking_db?sslmode=require
-4. Apply Migrations & Seed DataBash# Run migrations
-python manage.py makemigrations
-python manage.py migrate
-
-# Seed dummy data for testing
-python generate_data.py
-5. Run ServerBashpython manage.py runserver
-🔌 API Endpoints ReferenceMethodEndpointDescriptionPOST/api/auth/login/Obtain JWT Access & Refresh tokensGET/api/dashboard/overview/Get total, free, and occupied slot countsGET/api/devices/List all registered parking devicesPOST/api/telemetry/Ingest new telemetry data (Requires Auth)Sample Telemetry PayloadJSON{
-  "device_code": "PARK-B1-S005",
-  "voltage": 220.5,
-  "current": 5.2,
-  "power_factor": 0.92,
-  "timestamp": "2026-02-04T10:30:00Z"
+DATABASE_URL=postgres://neondb_owner:123456@ep-cool-water.neon.tech/parking_db?sslmode=require
+Step 4: Run Migrations and Seed DataBashpython manage.py migrate
+python manage.py shell < generate_data.py
+python manage.py runserver 3. API Documentation🔑 AuthenticationAll endpoints (except login) require a JWT Bearer Token.EndpointMethodDescription/api/auth/login/POSTGet access/refresh tokensCredentials:Username: adminPassword: 123456🏗️ Setup & ConfigurationUsed to initialize the facility structure.EndpointMethodPurpose/api/zones/POSTCreate a parking zone (e.g., Basement 1)/api/slots/POSTCreate a slot and link to a zone/api/devices/POSTRegister a new monitoring device📊 Monitoring & TelemetryUsed by IoT devices to send data and by the dashboard to read it.Device IngestionEndpoint: POST /api/telemetry/Payload:JSON{
+"device_code": "DEV-101",
+"voltage": 220.5,
+"current": 5.2,
+"power_factor": 0.92,
+"timestamp": "2026-02-04T10:30:00Z"
 }
-🧠 Business Logic & AssumptionsDuplicate Prevention: The system enforces a unique constraint on (device, timestamp). If a device sends the same data twice, it is rejected to ensure data accuracy.Device Health Logic:Healthy: Heartbeat seen within 2 minutes.Warning: Heartbeat seen within 2–10 minutes.Offline: No heartbeat for > 10 minutes.Directory Injection: Used sys.path.insert in settings to keep a clean apps/ directory structure.👤 AuthorYour:Saikat Kumar Mondal
- NameAssessment: Full Stack Software Engineer (Intern)Year: 2026
-```
+Operator QueriesDashboard Summary: GET /api/dashboard/overview/ (Returns total/occupied/free slots)List Devices: GET /api/devices/Telemetry History: GET /api/telemetry/?device_code=DEV-101Date Filtering: GET /api/telemetry/?device_code=DEV-999&start_date=2026-02-01&end_date=2026-02-044. Key Business Logic (Assessment Requirements)Duplicate Handling (Requirement 5.4)The backend enforces a Unique Constraint on the combination of device_code and timestamp.Policy: If a duplicate packet is received, it is ignored (or rejected with a 400 error) to prevent corrupting historical usage analytics.Device Health Monitoring (Requirement 5.3)Health status is calculated based on the last heartbeat:🟢 Healthy: Last seen ≤ 2 minutes ago.🟡 Warning: Last seen between 2 and 10 minutes ago.🔴 Offline: Last seen > 10 minutes ago.5. AssumptionsDevice Pre-registration: Telemetry is only accepted from devices already registered in the system.Timezone: All timestamps are handled in UTC to ensure consistency across different sensor locations.Slot-Device Mapping: Each slot is mapped to exactly one device
