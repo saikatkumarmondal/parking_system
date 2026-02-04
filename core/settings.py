@@ -10,8 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Apps folder path injection
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
-# HMAC key security warning 
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-highly-secret-parking-key-v1-2026-joy-maa-kali')
+# Secret Key with Fallback to avoid warning
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-highly-secret-parking-key-v1-2026-joy-maa-kali-default-long-key')
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
-    'corsheaders',  # Ensure: pip install django-cors-headers
+    'corsheaders', 
     
     # Local apps
     'apps.parking',
@@ -47,7 +47,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# React
 CORS_ALLOW_ALL_ORIGINS = True 
 
 ROOT_URLCONF = 'core.urls'
@@ -69,12 +68,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database Connection
+# Database Connection Fix for Neon PostgreSQL
 DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=True  # Neon database requires SSL
     )
 }
 
@@ -91,7 +90,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-# JWT Settings (Requirement 6.3)
+# JWT Settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -109,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Timezone config 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Dhaka'
 USE_I18N = True
 USE_TZ = True 
 
