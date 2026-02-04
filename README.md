@@ -1,18 +1,146 @@
-🅿️ Smart Car Parking Monitoring SystemA full-stack monitoring solution designed to track car parking occupancy, historical telemetry (voltage/current), and device health in real-time.1. Project OverviewThis system allows facility operators to monitor parking zones, track individual slot statuses, and ensure that monitoring devices are functional. It is built using a Django REST Framework backend and a Neon DB (PostgreSQL) cloud database.2. Setup InstructionsPrerequisitesPython 3.12+Neon DB or any PostgreSQL instanceStep 1: Clone and Environment SetupBashgit clone https://github.com/saikatkumarmondal/parking_system
+🅿️ Smart Car Parking Monitoring System
+
+A full-stack parking monitoring solution designed to track parking occupancy, historical telemetry (voltage/current), and device health in real time.
+
+The system enables facility operators to monitor parking zones, track individual slot statuses, and ensure all monitoring devices are functioning correctly.
+
+🚀 Project Overview
+
+This application is built with:
+
+Backend: Django REST Framework
+
+Database: Neon DB (PostgreSQL cloud)
+
+Authentication: JWT-based authentication
+
+Use Case: Smart parking facilities, IoT-based monitoring systems
+
+Key capabilities include:
+
+Real-time device health monitoring
+
+Historical telemetry data tracking
+
+Parking zone & slot management
+
+Secure API access using JWT
+
+⚙️ Setup Instructions
+Prerequisites
+
+Python 3.12+
+
+PostgreSQL (Neon DB recommended)
+
+Step 1: Clone Repository & Setup Virtual Environment
+git clone https://github.com/saikatkumarmondal/parking_system
 cd parking_system
+
 python -m venv venv
-source venv/bin/activate # On Windows: venv\Scripts\activate
-Step 2: Install DependenciesBashpip install -r requirements.txt
-Step 3: Configure Environment VariablesCreate a .env file in the root directory:Code snippetSECRET_KEY=your_secret_key
+source venv/bin/activate   # Windows: venv\Scripts\activate
+Step 2: Install Dependencies
+pip install -r requirements.txt
+Step 3: Configure Environment Variables
+
+Create a .env file in the project root:
+
+SECRET_KEY=your_secret_key
 DEBUG=True
+
+
 DATABASE_URL=postgres://neondb_owner:123456@ep-cool-water.neon.tech/parking_db?sslmode=require
-Step 4: Run Migrations and Seed DataBashpython manage.py migrate
+
+Step 4: Run Migrations & Seed Sample Data
+python manage.py migrate
 python manage.py shell < generate_data.py
-python manage.py runserver 3. API Documentation🔑 AuthenticationAll endpoints (except login) require a JWT Bearer Token.EndpointMethodDescription/api/auth/login/POSTGet access/refresh tokensCredentials:Username: adminPassword: 123456🏗️ Setup & ConfigurationUsed to initialize the facility structure.EndpointMethodPurpose/api/zones/POSTCreate a parking zone (e.g., Basement 1)/api/slots/POSTCreate a slot and link to a zone/api/devices/POSTRegister a new monitoring device📊 Monitoring & TelemetryUsed by IoT devices to send data and by the dashboard to read it.Device IngestionEndpoint: POST /api/telemetry/Payload:JSON{
-"device_code": "DEV-101",
-"voltage": 220.5,
-"current": 5.2,
-"power_factor": 0.92,
-"timestamp": "2026-02-04T10:30:00Z"
+python manage.py runserver
+
+
+The server will start at:
+
+http://127.0.0.1:8000
+
+🔑 API Documentation
+Authentication
+
+All endpoints (except login) require a JWT Bearer Token.
+
+Login Endpoint
+
+POST /api/auth/login/
+
+
+Credentials (Demo):
+
+Username: admin
+
+Password: 123456
+
+🏗️ Setup & Configuration APIs
+
+Used to initialize the parking facility structure.
+
+Endpoint	Method	Description
+/api/zones/	POST	Create a parking zone (e.g., Basement 1)
+/api/slots/	POST	Create a slot and assign it to a zone
+/api/devices/	POST	Register a new monitoring device
+📊 Monitoring & Telemetry
+Device Telemetry Ingestion
+
+Endpoint
+
+POST /api/telemetry/
+
+
+Payload Example
+
+{
+  "device_code": "DEV-101",
+  "voltage": 220.5,
+  "current": 5.2,
+  "power_factor": 0.92,
+  "timestamp": "2026-02-04T10:30:00Z"
 }
-Operator QueriesDashboard Summary: GET /api/dashboard/overview/ (Returns total/occupied/free slots)List Devices: GET /api/devices/Telemetry History: GET /api/telemetry/?device_code=DEV-101Date Filtering: GET /api/telemetry/?device_code=DEV-999&start_date=2026-02-01&end_date=2026-02-044. Key Business Logic (Assessment Requirements)Duplicate Handling (Requirement 5.4)The backend enforces a Unique Constraint on the combination of device_code and timestamp.Policy: If a duplicate packet is received, it is ignored (or rejected with a 400 error) to prevent corrupting historical usage analytics.Device Health Monitoring (Requirement 5.3)Health status is calculated based on the last heartbeat:🟢 Healthy: Last seen ≤ 2 minutes ago.🟡 Warning: Last seen between 2 and 10 minutes ago.🔴 Offline: Last seen > 10 minutes ago.5. AssumptionsDevice Pre-registration: Telemetry is only accepted from devices already registered in the system.Timezone: All timestamps are handled in UTC to ensure consistency across different sensor locations.Slot-Device Mapping: Each slot is mapped to exactly one device
+
+Operator / Dashboard APIs
+Feature	Endpoint
+Dashboard Overview	GET /api/dashboard/overview/
+List All Devices	GET /api/devices/
+Telemetry History	GET /api/telemetry/?device_code=DEV-101
+Date Filtered Telemetry	GET /api/telemetry/?device_code=DEV-999&start_date=2026-02-01&end_date=2026-02-04
+🧠 Key Business Logic (Assessment Requirements)
+Duplicate Telemetry Handling (Requirement 5.4)
+
+A unique constraint is enforced on:
+
+(device_code, timestamp)
+
+
+Policy:
+
+Duplicate telemetry packets are ignored or rejected with a 400 Bad Request
+
+This ensures historical analytics remain accurate
+
+Device Health Monitoring (Requirement 5.3)
+
+Device health is calculated based on the last heartbeat timestamp:
+
+🟢 Healthy: Last reported ≤ 2 minutes ago
+
+🟡 Warning: Last reported between 2–10 minutes ago
+
+🔴 Offline: Last reported > 10 minutes ago
+
+📌 Assumptions
+
+Device Pre-registration: Telemetry is accepted only from registered devices
+
+Timezone: All timestamps are handled in UTC
+
+Slot-Device Mapping: Each parking slot is mapped to exactly one device
+
+👨‍💻 Author
+
+Saikat Kumar Mondal
